@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLOCK DESTROYER 9000</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        body {
+            background: #000;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .vibe-check {
+            position: fixed;
+            top: 50%;
+            right: 5%;
+            transform: translate(0, -50%);
+            font-size: 2.5vw;
+            color: #fff;
+            text-shadow: 0 0 15px #ff00ff, 0 0 25px #00ffff;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1000;
+            animation: vibePopupSide 1s ease-out;
+        }
+        
+        @keyframes vibePopupSide {
+            0% { opacity: 0; transform: translate(50px, -50%) scale(0); }
+            20% { opacity: 1; transform: translate(0, -50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(0, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-30px, -50%) scale(0.8); }
+        }
+        
+        .game-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 50px rgba(255,0,255,0.5), 0 0 100px rgba(0,255,255,0.3);
+            position: relative;
+            max-width: 100vw;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        canvas {
+            border: 3px solid #fff;
+            border-radius: 8px;
+            display: block;
+            background: #000;
+            box-shadow: inset 0 0 50px rgba(255,0,255,0.3);
+            width: 100%;
+            height: auto;
+            position: relative;
+        }
+        
+        .canvas-wrapper {
+            position: relative;
+        }
+        
+        .touch-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+        
+        .touch-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+            pointer-events: all;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.1s;
+        }
+        
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.9);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            color: white;
+            font-size: 8px;
+            gap: 5px;
+        }
+        
+        .stat-item {
+            background: rgba(0,0,0,0.8);
+            padding: 5px;
+            border-radius: 5px;
+            flex: 1;
+            text-align: center;
+            border: 2px solid #ff00ff;
+        }
+        
+        .stat-value {
+            font-size: 12px;
+            color: #00ffff;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+            margin-top: 3px;
+        }
+        
+        .shop {
+            margin-top: 8px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .shop-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 8px;
+            font-weight: bold;
+            border: 3px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+            background: #00ffff;
+            color: #000;
+            border-color: #fff;
+        }
+        
+        .shop-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .shop-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #666 !important;
+            border-color: #444 !important;
+        }
+        
+        .outfit-display {
+            margin-top: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+            border: 2px solid #00ffff;
+            font-size: 7px;
+        }
+        
+        .outfit-item {
+            margin: 3px 0;
+            padding: 5px;
+            background: rgba(255,0,255,0.2);
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .outfit-item.burning {
+            animation: burnEffect 0.5s ease-out;
+            background: rgba(255, 0, 0, 0.8) !important;
+            border-color: #ff0000 !important;
+        }
+
+        @keyframes burnEffect {
+            0% { background: rgba(255,0,255,0.2); }
+            50% { background: rgba(255, 50, 0, 0.9); transform: scale(1.05); }
+            100% { background: rgba(255, 0, 0, 0.8); }
+        }
+
+        .outfit-content {
+            flex: 1;
+        }
+
+        .lock-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 7px;
+            transition: all 0.2s;
+            margin-left: 5px;
+        }
+
+        .lock-btn:active {
+            transform: scale(0.9);
+        }
+
+        .lock-btn.locked {
+            background: #ff00ff;
+            box-shadow: 0 0 5px #ff00ff;
+        }
+        
+        .rarity-common { color: #ffffff; text-shadow: 0 0 5px #ffffff; }
+        .rarity-rare { color: #00ff00; text-shadow: 0 0 5px #00ff00; }
+        .rarity-epic { color: #0080ff; text-shadow: 0 0 8px #0080ff; }
+        .rarity-myth { color: #ffff00; text-shadow: 0 0 10px #ffff00; animation: glow 1s ease-in-out infinite; }
+        .rarity-legendary { color: #b000ff; text-shadow: 0 0 15px #b000ff; animation: glow 0.8s ease-in-out infinite; font-weight: bold; }
+        .rarity-god { 
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 2s linear infinite;
+            font-weight: bold;
+        }
+        
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px currentColor; }
+            50% { text-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+        }
+        
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+        
+        .title-display {
+            font-size: 9px;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .info-text {
+            font-size: 6px;
+            text-align: center;
+            color: #aaa;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        .info-highlight {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .controls-info {
+            margin-top: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 6px;
+            border-radius: 8px;
+            color: #fff;
+            border: 2px solid #ff00ff;
+            font-size: 6px;
+            text-align: center;
+        }
+
+        .controls-info span {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        @media (min-width: 768px) {
+            canvas {
+                max-width: 350px;
+            }
+            
+            .stats {
+                font-size: 10px;
+            }
+            
+            .stat-value {
+                font-size: 16px;
+            }
+            
+            .shop-btn {
+                font-size: 9px;
+                padding: 12px;
+            }
+            
+            .outfit-display {
+                font-size: 9px;
+            }
+            
+            .outfit-item {
+                font-size: 8px;
+            }
+            
+            .controls-info {
+                font-size: 8px;
+            }
+
+            .lock-btn {
+                font-size: 8px;
+            }
+
+            .info-text {
+                font-size: 7px;
+            }
+
+            .vibe-check {
+                font-size: 18px;
+            }
+
+            .touch-controls {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="350" height="500"></canvas>
+            <div class="touch-controls">
+                <div class="touch-btn" id="leftBtn">←</div>
+                <div class="touch-btn" id="rightBtn">→</div>
+            </div>
+        </div>
+        
+        <div class="controls-info">
+            🎮 <span>← →</span> OR <span>A D</span> | PULL: <span>R ↓</span> 🎮
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div>💰</div>
+                <div class="stat-value" id="money">0</div>
+            </div>
+            <div class="stat-item">
+                <div>🎯</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+        </div>
+        <div class="shop">
+            <button class="shop-btn" id="gachaBtn" onclick="buyGacha()">
+                🎲 DRIP<br>($<span id="gachaCost">50</span>)
+            </button>
+        </div>
+        <div class="outfit-display">
+            <div class="title-display" id="titleDisplay">NOOB GAMER</div>
+            <div class="outfit-item" id="headSlot">
+                <div class="outfit-content" id="head">🎩 HEAD: <span class="rarity-common">NONE [COMMON]</span> <span style="color: #ffd700;">+0.0</span></div>
+                <button class="lock-btn" onclick="toggleLock('head')">🔓</button>
+            </div>
+            <div class="outfit-item" id="topSlot">
+                <div class="outfit-content" id="top">👕 TOP: <span class="rarity-common">NONE [COMMON]</span> <span style="color: #ffd700;">+0.0</span></div>
+                <button class="lock-btn" onclick="toggleLock('top')">🔓</button>
+            </div>
+            <div class="outfit-item" id="bottomSlot">
+                <div class="outfit-content" id="bottom">👖 PANTS: <span class="rarity-common">NONE [COMMON]</span> <span style="color: #ffd700;">+0.0</span></div>
+                <button class="lock-btn" onclick="toggleLock('bottom')">🔓</button>
+            </div>
+            <div class="outfit-item" id="shoesSlot">
+                <div class="outfit-content" id="shoes">👟 KICKS: <span class="rarity-common">NONE [COMMON]</span> <span style="color: #ffd700;">+0.0</span></div>
+                <button class="lock-btn" onclick="toggleLock('shoes')">🔓</button>
+            </div>
+            <div style="margin-top: 5px; text-align: center;">
+                DRIP: <span style="color: #00ffff; font-size: 10px; text-shadow: 0 0 10px #00ffff;" id="totalMultiplier">x1.0</span>
+            </div>
+            <div style="margin-top: 3px; text-align: center;">
+                PULLS: <span id="gachaCount">0</span> | DESTROYED: <span id="destroyCount" style="color: #ff6666;">0</span>
+            </div>
+            <div class="info-text" id="ratesDisplay">
+                RATES: C:60% R:25% E:10% M:3% L:1.5% G:0.5%
+            </div>
+            <div class="info-text">
+                <span class="info-highlight">TIP:</span> 고급 의상이 파괴될수록<br>좋은 아이템 확률 UP! 🔥
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let audioUnlocked = false;
+
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                const buffer = audioContext.createBuffer(1, 1, 22050);
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+                audioUnlocked = true;
+            }
+        }
+
+        function playSound(frequency, duration, type = 'sine', volume = 0.1) {
+            if (!audioUnlocked) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            gainNode.gain.value = volume;
+            
+            oscillator.start(audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playHitSound() {
+            playSound(800, 0.1, 'square', 0.15);
+        }
+
+        function playMissSound() {
+            playSound(200, 0.2, 'sawtooth', 0.2);
+        }
+
+        function playGachaSound(rarity) {
+            const frequencies = {
+                common: 400,
+                rare: 600,
+                epic: 800,
+                myth: 1000,
+                legendary: 1200,
+                god: 1500
+            };
+            playSound(frequencies[rarity] || 400, 0.3, 'sine', 0.2);
+            setTimeout(() => playSound((frequencies[rarity] || 400) * 1.5, 0.2, 'sine', 0.15), 100);
+        }
+
+        function playDestroySound() {
+            playSound(150, 0.3, 'sawtooth', 0.25);
+            setTimeout(() => playSound(100, 0.2, 'sawtooth', 0.2), 150);
+        }
+
+        const PHRASES = [
+            "SHEESH!", "NO CAP!", "BUSSIN!", "SLAY!", "PERIODT!", "ITS GIVING!", 
+            "ATE THAT!", "YEET!", "BET!", "VIBES!", "FIRE!", "BRUH!", 
+            "RESPECTFULLY!", "UNDERSTOOD!", "REAL!", "FR FR!", "LOWKEY!", "HIGHKEY!",
+            "RATIO!", "W!", "BASED!", "VALID!", "ICONIC!", "LEGENDARY!", "POGGERS!",
+            "LETS GO!", "MAIN CHARACTER!", "COOKED!", "LOCKED IN!", "WE UP!"
+        ];
+
+        const FAIL_PHRASES = [
+            "L BOZO!", "SKILL ISSUE!", "TRY AGAIN!", "COOKED!", "FUMBLED!",
+            "EMBARRASSING!", "NOT IT!", "YIKES!", "CRINGE!", "MID!",
+            "RATIO'D!", "MASSIVE L!", "FELL OFF!", "WASHED!", "BROKE!"
+        ];
+
+        let game = {
+            money: 0,
+            score: 0,
+            baseReward: 10,
+            blocks: [],
+            particles: [],
+            gachaCost: 50,
+            gachaCount: 0,
+            totalGachaCount: 0,
+            destroyCount: 0,
+            gameOver: false,
+            combo: 0,
+            maxCombo: 0,
+            comboTimer: 0,
+            comboMaxTime: 2000,
+            flashTime: 0,
+            flashColor: '#ffffff',
+            screenShake: 0,
+            fireMode: false,
+            lockedSlots: {
+                head: false,
+                top: false,
+                bottom: false,
+                shoes: false
+            },
+            outfit: {
+                head: { name: 'NONE', multiplier: 0.0, rarity: 'common', emoji: '🎩' },
+                top: { name: 'NONE', multiplier: 0.0, rarity: 'common', emoji: '👕' },
+                bottom: { name: 'NONE', multiplier: 0.0, rarity: 'common', emoji: '👖' },
+                shoes: { name: 'NONE', multiplier: 0.0, rarity: 'common', emoji: '👟' }
+            },
+            title: 'NOOB GAMER'
+        };
+
+        const rarityData = {
+            common: { color: '#ffffff', name: 'COMMON', minMult: 0.0, maxMult: 0.2, value: 1 },
+            rare: { color: '#00ff00', name: 'RARE', minMult: 0.3, maxMult: 0.6, value: 2 },
+            epic: { color: '#0080ff', name: 'EPIC', minMult: 0.8, maxMult: 1.5, value: 3 },
+            myth: { color: '#ffff00', name: 'MYTH', minMult: 2.0, maxMult: 3.5, value: 4 },
+            legendary: { color: '#b000ff', name: 'LEGENDARY', minMult: 4.0, maxMult: 7.0, value: 5 },
+            god: { color: 'rainbow', name: 'GOD TIER', minMult: 10.0, maxMult: 20.0, value: 6 }
+        };
+
+        const outfitNames = {
+            head: ['BEANIE', 'SHADES', 'CROWN', 'BUCKET HAT', 'DURAG', 'BANDANA', 'HORNS', 'HALO', 'AIRPODS', 'CAP'],
+            top: ['TEE', 'HOODIE', 'VEST', 'DRIP JACKET', 'CAPE', 'SUPREME TEE', 'PUFFER', 'CROP TOP', 'SUIT', 'ONESIE'],
+            bottom: ['SHORTS', 'JEANS', 'SKIRT', 'CARGOS', 'SWEATS', 'RIPPED JEANS', 'SWIM TRUNKS', 'TUTU', 'JOGGERS'],
+            shoes: ['SNEAKERS', 'CROCS', 'SANDALS', 'BOOTS', 'SLIDES', 'HEELS', 'TIMBS', 'SKATES', 'ROLLERBLADES']
+        };
+
+        const titleAdj = ['UNHINGED', 'FERAL', 'CRACKED', 'BASED', 'BUSSIN', 'SIGMA', 'ALPHA', 'OMEGA', 'CHAOTIC',
+                         'DEMURE', 'MINDFUL', 'SILLY', 'GOOFY', 'SLAY', 'ICONIC', 'LEGENDARY', 'MYTHIC', 'DIVINE'];
+        const titleNoun = ['WARRIOR', 'WIZARD', 'ZOMBIE', 'ROBOT', 'DINO', 'CAT', 'DOG', 'BANANA',
+                          'POTATO', 'CHICKEN', 'PIZZA', 'KING', 'QUEEN', 'NINJA', 'PIRATE', 'ALIEN'];
+        const titleAction = ['SLAYER', 'COLLECTOR', 'DESTROYER', 'CREATOR', 'HUNTER', 'GUARDIAN', 'DOMINATOR',
+                            'GAMER', 'TRAVELER', 'EXPLORER', 'MASTER', 'CHAMPION'];
+
+        function showVibeCheck(text) {
+            const vibe = document.createElement('div');
+            vibe.className = 'vibe-check';
+            vibe.textContent = text;
+            vibe.style.top = Math.random() * 30 + 35 + '%';
+            vibe.style.right = Math.random() * 10 + 3 + '%';
+            document.body.appendChild(vibe);
+            setTimeout(() => vibe.remove(), 1000);
+        }
+
+        function shakeScreen() {
+            const container = document.getElementById('gameContainer');
+            container.style.animation = 'none';
+            setTimeout(() => {
+                container.style.animation = '';
+            }, 10);
+        }
+
+        function toggleLock(slot) {
+            game.lockedSlots[slot] = !game.lockedSlots[slot];
+            
+            if (game.lockedSlots[slot]) {
+                showVibeCheck('LOCKED! 🔒');
+            }
+            
+            updateUI();
+        }
+
+        function updateGachaButton() {
+            const allLocked = Object.values(game.lockedSlots).every(locked => locked);
+            const gachaBtn = document.getElementById('gachaBtn');
+            gachaBtn.disabled = allLocked;
+        }
+
+        function calculateRates() {
+            const destroyBoost = game.destroyCount * 0.3;
+            
+            let common = Math.max(60 - destroyBoost, 40);
+            let rare = 25 + destroyBoost * 0.2;
+            let epic = 10 + destroyBoost * 0.2;
+            let myth = 3 + destroyBoost * 0.15;
+            let legendary = 1.5 + destroyBoost * 0.15;
+            let god = 0.5 + destroyBoost * 0.1;
+            
+            const total = common + rare + epic + myth + legendary + god;
+            return {
+                common: (common / total) * 100,
+                rare: (rare / total) * 100,
+                epic: (epic / total) * 100,
+                myth: (myth / total) * 100,
+                legendary: (legendary / total) * 100,
+                god: (god / total) * 100
+            };
+        }
+
+        function updateRatesDisplay() {
+            const rates = calculateRates();
+            const ratesText = `RATES: C:${rates.common.toFixed(0)}% R:${rates.rare.toFixed(0)}% E:${rates.epic.toFixed(0)}% M:${rates.myth.toFixed(1)}% L:${rates.legendary.toFixed(1)}% G:${rates.god.toFixed(1)}%`;
+            document.getElementById('ratesDisplay').textContent = ratesText;
+        }
+
+        class Block {
+            constructor(direction) {
+                this.direction = direction;
+                this.y = -80;
+                this.size = 60;
+                this.dying = false;
+                this.dieTime = 0;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.rotation = 0;
+                this.rotationSpeed = 0;
+                this.isMoving = false;
+                this.targetY = 0;
+            }
+
+            draw() {
+                ctx.save();
+                
+                let drawX = canvas.width / 2;
+                let drawY = this.y;
+                
+                if (game.screenShake > 0) {
+                    drawX += (Math.random() - 0.5) * game.screenShake;
+                    drawY += (Math.random() - 0.5) * game.screenShake;
+                }
+                
+                ctx.translate(drawX, drawY);
+                
+                if (this.dying) {
+                    const elapsed = (Date.now() - this.dieTime) / 10;
+                    ctx.translate(this.velocityX * elapsed, this.velocityY * elapsed);
+                    ctx.rotate(this.rotation);
+                    ctx.globalAlpha = Math.max(0, 1 - (Date.now() - this.dieTime) / 500);
+                }
+
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.direction === 'left' ? '#ff00ff' : '#00ffff';
+
+                const gradient = ctx.createLinearGradient(-this.size/2, -this.size/2, this.size/2, this.size/2);
+                gradient.addColorStop(0, this.direction === 'left' ? '#ff00ff' : '#00ffff');
+                gradient.addColorStop(1, this.direction === 'left' ? '#ff0080' : '#0080ff');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(-this.size/2, -this.size/2, this.size, this.size);
+
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.direction === 'left' ? '←' : '→', 0, 0);
+
+                ctx.restore();
+            }
+
+            update() {
+                if (this.isMoving && !this.dying) {
+                    const speed = 15;
+                    if (Math.abs(this.targetY - this.y) > speed) {
+                        this.y += this.targetY > this.y ? speed : -speed;
+                    } else {
+                        this.y = this.targetY;
+                        this.isMoving = false;
+                    }
+                }
+            }
+
+            die() {
+                this.dying = true;
+                this.dieTime = Date.now();
+                this.velocityX = (Math.random() - 0.5) * 30;
+                this.velocityY = -15 - Math.random() * 15;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.5;
+                
+                for (let i = 0; i < 50; i++) {
+                    game.particles.push({
+                        x: canvas.width / 2 + (Math.random() - 0.5) * this.size,
+                        y: this.y + (Math.random() - 0.5) * this.size,
+                        vx: (Math.random() - 0.5) * 20,
+                        vy: (Math.random() - 0.5) * 20,
+                        life: 1,
+                        size: Math.random() * 8 + 2,
+                        color: this.direction === 'left' ? '#ff00ff' : '#00ffff',
+                        rotation: Math.random() * Math.PI * 2,
+                        rotSpeed: (Math.random() - 0.5) * 0.2
+                    });
+                }
+            }
+
+            updateDying() {
+                this.rotation += this.rotationSpeed;
+                this.velocityY += 0.8;
+            }
+        }
+
+        function generateTitle() {
+            const adj = titleAdj[Math.floor(Math.random() * titleAdj.length)];
+            const noun = titleNoun[Math.floor(Math.random() * titleNoun.length)];
+            const action = titleAction[Math.floor(Math.random() * titleAction.length)];
+            return `${adj} ${noun} ${action}`;
+        }
+
+        function getTotalMultiplier() {
+            return 1 + game.outfit.head.multiplier + 
+                   game.outfit.top.multiplier + 
+                   game.outfit.bottom.multiplier + 
+                   game.outfit.shoes.multiplier;
+        }
+
+        function getRarityFromGacha() {
+            const rates = calculateRates();
+            const rand = Math.random() * 100;
+            
+            let cumulative = 0;
+            cumulative += rates.common;
+            if (rand < cumulative) return 'common';
+            
+            cumulative += rates.rare;
+            if (rand < cumulative) return 'rare';
+            
+            cumulative += rates.epic;
+            if (rand < cumulative) return 'epic';
+            
+            cumulative += rates.myth;
+            if (rand < cumulative) return 'myth';
+            
+            cumulative += rates.legendary;
+            if (rand < cumulative) return 'legendary';
+            
+            return 'god';
+        }
+
+        function createBurnEffect(slotName) {
+            const slotEl = document.getElementById(slotName + 'Slot');
+            slotEl.classList.add('burning');
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const slotRect = slotEl.getBoundingClientRect();
+                    const canvasRect = canvas.getBoundingClientRect();
+                    
+                    game.particles.push({
+                        x: (slotRect.left - canvasRect.left + slotRect.width / 2) / canvasRect.width * canvas.width,
+                        y: (slotRect.top - canvasRect.top + slotRect.height / 2) / canvasRect.height * canvas.height,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: -Math.random() * 8 - 5,
+                        life: 1.5,
+                        size: Math.random() * 6 + 3,
+                        color: i % 2 === 0 ? '#ff4400' : '#ff8800',
+                        rotation: 0,
+                        rotSpeed: (Math.random() - 0.5) * 0.2
+                    });
+                }, i * 25);
+            }
+            
+            setTimeout(() => {
+                slotEl.classList.remove('burning');
+            }, 500);
+        }
+
+        function destroyRandomItem() {
+            const slots = ['head', 'top', 'bottom', 'shoes'];
+            const availableSlots = slots.filter(slot => game.outfit[slot].name !== 'NONE');
+            
+            if (availableSlots.length === 0) return;
+            
+            const slotToDestroy = availableSlots[Math.floor(Math.random() * availableSlots.length)];
+            const item = game.outfit[slotToDestroy];
+            const rarity = item.rarity;
+            const rarityValue = rarityData[rarity].value;
+            
+            game.destroyCount += rarityValue;
+            
+            createBurnEffect(slotToDestroy);
+            
+            game.outfit[slotToDestroy] = { 
+                name: 'NONE', 
+                multiplier: 0.0, 
+                rarity: 'common', 
+                emoji: ['🎩', '👕', '👖', '👟'][slots.indexOf(slotToDestroy)] 
+            };
+            
+            game.screenShake = 10 * rarityValue;
+            
+            for (let i = 0; i < 30 * rarityValue; i++) {
+                game.particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 25,
+                    vy: (Math.random() - 0.5) * 25,
+                    life: 1.5,
+                    size: Math.random() * 10 + 3,
+                    color: rarityData[rarity].color === 'rainbow' ? 
+                        `hsl(${Math.random() * 360}, 100%, 50%)` : rarityData[rarity].color,
+                    rotation: 0,
+                    rotSpeed: (Math.random() - 0.5) * 0.3
+                });
+            }
+            
+            const messages = {
+                common: 'TRASH GONE! 🗑️',
+                rare: 'BROKE IT! 💔',
+                epic: 'RIP! 😭',
+                myth: 'DESTROYED! 💥',
+                legendary: 'OBLITERATED! ⚡',
+                god: 'WHAT HAVE YOU DONE?! 😱'
+            };
+            
+            showVibeCheck(messages[rarity] || 'OOPS! 😬');
+            playDestroySound();
+            
+            if (rarity === 'god' || rarity === 'legendary') {
+                game.flashTime = Date.now();
+                game.flashColor = rarityData[rarity].color;
+            }
+        }
+
+        function buyGacha() {
+            const currentCost = Math.floor(50 + Math.pow(game.gachaCount, 1.8) * 10);
+            
+            if (game.money < currentCost) {
+                showVibeCheck('BROKE! 💀');
+                playMissSound();
+                shakeScreen();
+                return;
+            }
+
+            const allLocked = Object.values(game.lockedSlots).every(locked => locked);
+            if (allLocked) {
+                showVibeCheck('UNLOCK SOMETHING! 😤');
+                return;
+            }
+
+            game.money -= currentCost;
+            game.gachaCount++;
+            game.totalGachaCount++;
+
+            const availableSlots = Object.keys(game.lockedSlots).filter(slot => !game.lockedSlots[slot]);
+            const slot = availableSlots[Math.floor(Math.random() * availableSlots.length)];
+            
+            const rarity = getRarityFromGacha();
+            const rarityInfo = rarityData[rarity];
+            const multiplier = rarityInfo.minMult + Math.random() * (rarityInfo.maxMult - rarityInfo.minMult);
+            const name = outfitNames[slot][Math.floor(Math.random() * outfitNames[slot].length)];
+            
+            const emojis = {
+                head: ['🧢', '😎', '👑', '🎩', '🎀', '🔥', '💀', '✨', '🎧', '⚡'],
+                top: ['👕', '🔥', '💎', '⚡', '✨', '🧥', '🦺', '💀', '🌟', '🎯'],
+                bottom: ['👖', '🔥', '💎', '⚡', '✨', '👗', '🩳', '💀', '🌟', '🎯'],
+                shoes: ['👟', '🔥', '💎', '⚡', '✨', '👞', '🥾', '💀', '🌟', '🎯']
+            };
+            const emoji = emojis[slot][Math.floor(Math.random() * emojis[slot].length)];
+
+            game.outfit[slot] = { name, multiplier: parseFloat(multiplier.toFixed(1)), rarity, emoji };
+            game.title = generateTitle();
+
+            game.flashTime = Date.now();
+            game.flashColor = rarityData[rarity].color;
+
+            playGachaSound(rarity);
+            updateUI();
+            
+            if (rarity === 'god') {
+                showVibeCheck('GOD TIER! 🌈');
+                for (let i = 0; i < 200; i++) {
+                    game.particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 15,
+                        vy: (Math.random() - 0.5) * 15,
+                        life: 2.5,
+                        size: Math.random() * 15 + 5,
+                        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                        rotation: 0,
+                        rotSpeed: 0
+                    });
+                }
+            } else if (rarity === 'legendary') {
+                showVibeCheck('LEGENDARY! 💜');
+                for (let i = 0; i < 100; i++) {
+                    game.particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 12,
+                        vy: (Math.random() - 0.5) * 12,
+                        life: 2,
+                        size: Math.random() * 12 + 4,
+                        color: '#b000ff',
+                        rotation: 0,
+                        rotSpeed: 0
+                    });
+                }
+            } else if (rarity === 'myth') {
+                showVibeCheck('MYTHICAL! ⭐');
+            } else {
+                showVibeCheck(PHRASES[Math.floor(Math.random() * PHRASES.length)]);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('money').textContent = Math.floor(game.money);
+            document.getElementById('score').textContent = game.score;
+            document.getElementById('destroyCount').textContent = game.destroyCount;
+            const currentCost = Math.floor(50 + Math.pow(game.gachaCount, 1.8) * 10);
+            document.getElementById('gachaCost').textContent = currentCost;
+            document.getElementById('gachaCount').textContent = game.gachaCount;
+            document.getElementById('totalMultiplier').textContent = `x${getTotalMultiplier().toFixed(1)}`;
+            document.getElementById('titleDisplay').textContent = game.title;
+
+            const slotNames = { head: 'HEAD', top: 'TOP', bottom: 'PANTS', shoes: 'KICKS' };
+            const slotBtns = document.querySelectorAll('.lock-btn');
+            let i = 0;
+            for (let slot in game.outfit) {
+                const item = game.outfit[slot];
+                const rarityText = rarityData[item.rarity].name;
+                const el = document.getElementById(slot);
+                el.innerHTML = `${item.emoji} ${slotNames[slot]}: <span class="rarity-${item.rarity}">${item.name} [${rarityText}]</span> <span style="color: #ffd700;">+${item.multiplier}</span>`;
+                
+                slotBtns[i].textContent = game.lockedSlots[slot] ? '🔒' : '🔓';
+                slotBtns[i].className = game.lockedSlots[slot] ? 'lock-btn locked' : 'lock-btn';
+                i++;
+            }
+
+            updateGachaButton();
+            updateRatesDisplay();
+        }
+
+        function spawnBlock() {
+            const direction = Math.random() < 0.5 ? 'left' : 'right';
+            const block = new Block(direction);
+            block.y = game.blocks.length > 0 ? game.blocks[game.blocks.length - 1].y - 75 : canvas.height - 100;
+            game.blocks.push(block);
+        }
+
+        function moveBlocksDown() {
+            if (game.blocks.length > 0) {
+                const targetY = canvas.height - 100;
+                const currentY = game.blocks[0].y;
+                const distance = targetY - currentY;
+                
+                game.blocks.forEach(block => {
+                    block.targetY = block.y + distance;
+                    block.isMoving = true;
+                });
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < 7; i++) {
+                spawnBlock();
+            }
+        }
+
+        function handleInput(direction) {
+            unlockAudio();
+            
+            if (game.gameOver || game.blocks.length === 0) return;
+
+            const currentBlock = game.blocks[0];
+            
+            if ((direction === 'left' && currentBlock.direction === 'left') ||
+                (direction === 'right' && currentBlock.direction === 'right')) {
+                
+                game.combo++;
+                game.comboTimer = Date.now();
+                
+                if (game.combo > game.maxCombo) game.maxCombo = game.combo;
+                
+                let comboBonus = 1;
+                if (game.combo <= 5) {
+                    comboBonus = 0.3 + (game.combo * 0.14);
+                } else {
+                    comboBonus = 1 + ((game.combo - 5) * 0.1);
+                }
+                
+                let bonusMoney = 0;
+                if (game.combo % 10 === 0 && game.combo > 0) {
+                    bonusMoney = Math.floor(game.baseReward * getTotalMultiplier() * game.combo * 0.5);
+                    game.fireMode = true;
+                    showVibeCheck(`🔥 FIRE! +${bonusMoney} 🔥`);
+                }
+                
+                const reward = Math.floor(game.baseReward * getTotalMultiplier() * comboBonus);
+                game.money += reward + bonusMoney;
+                game.score++;
+                
+                currentBlock.die();
+                game.blocks.shift();
+                spawnBlock();
+                moveBlocksDown();
+                
+                game.screenShake = 10;
+                
+                playHitSound();
+                
+                if (game.combo % 10 === 0) {
+                    showVibeCheck(PHRASES[Math.floor(Math.random() * PHRASES.length)]);
+                }
+                
+            } else {
+                destroyRandomItem();
+                game.combo = 0;
+                game.fireMode = false;
+                game.screenShake = 20;
+                shakeScreen();
+                
+                showVibeCheck(FAIL_PHRASES[Math.floor(Math.random() * FAIL_PHRASES.length)]);
+                playMissSound();
+                
+                for (let i = 0; i < 30; i++) {
+                    game.particles.push({
+                        x: canvas.width / 2,
+                        y: canvas.height - 100,
+                        vx: (Math.random() - 0.5) * 15,
+                        vy: -Math.random() * 15,
+                        life: 1,
+                        size: Math.random() * 6 + 2,
+                        color: '#ff0000',
+                        rotation: 0,
+                        rotSpeed: 0
+                    });
+                }
+            }
+
+            updateUI();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R' || e.key === 'ArrowDown') {
+                buyGacha();
+                return;
+            }
+            
+            let isLeftKey = e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A';
+            let isRightKey = e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D';
+            
+            if (isLeftKey) handleInput('left');
+            if (isRightKey) handleInput('right');
+        });
+
+        document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput('left');
+        });
+
+        document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput('right');
+        });
+
+        function drawParticles() {
+            game.particles = game.particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.4;
+                p.life -= 0.03;
+                p.rotation += p.rotSpeed;
+
+                if (p.life > 0) {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation);
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color;
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        function drawBackground() {
+            const time = Date.now() * 0.001;
+            
+            if (game.fireMode && game.combo > 0) {
+                for (let i = 0; i < 8; i++) {
+                    ctx.fillStyle = `hsla(${20 + Math.sin(time * 5 + i) * 20}, 100%, 50%, ${0.1 + Math.random() * 0.1})`;
+                    ctx.beginPath();
+                    ctx.arc(
+                        Math.random() * canvas.width, 
+                        canvas.height - Math.random() * 100, 
+                        20 + Math.random() * 30, 
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            }
+            
+            for (let i = 0; i < 5; i++) {
+                ctx.strokeStyle = `hsla(${(time * 50 + i * 60) % 360}, 100%, 50%, 0.1)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, 50 + i * 80 + Math.sin(time + i) * 20, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            if (Date.now() - game.flashTime < 1500) {
+                const flashAlpha = 1 - (Date.now() - game.flashTime) / 1500;
+                
+                if (game.flashColor === 'rainbow') {
+                    const hue = (Date.now() * 0.3) % 360;
+                    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${flashAlpha * 0.5})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    for (let i = 0; i < 10; i++) {
+                        const offsetHue = (hue + i * 36) % 360;
+                        ctx.fillStyle = `hsla(${offsetHue}, 100%, 50%, ${flashAlpha * 0.3})`;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                } else if (game.flashColor === '#b000ff') {
+                    ctx.fillStyle = `rgba(176, 0, 255, ${flashAlpha * 0.4})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    ctx.shadowBlur = 50;
+                    ctx.shadowColor = '#b000ff';
+                    ctx.fillStyle = `rgba(176, 0, 255, ${flashAlpha * 0.2})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.shadowBlur = 0;
+                } else if (game.flashColor === '#ffff00') {
+                    ctx.fillStyle = `rgba(255, 255, 0, ${flashAlpha * 0.3})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function drawComboDisplay() {
+            if (game.combo > 1) {
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 24px "Press Start 2P"';
+                ctx.textAlign = 'left';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillText(`COMBO`, 15, 40);
+                ctx.font = 'bold 36px "Press Start 2P"';
+                ctx.fillText(`x${game.combo}`, 15, 75);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+        }
+
+        function drawComboMeter() {
+            if (game.combo > 1) {
+                const meterHeight = 15;
+                const meterY = canvas.height - 30;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(10, meterY, canvas.width - 20, meterHeight);
+                
+                const comboSpeedMultiplier = 1 + (game.combo * 0.05);
+                const adjustedMaxTime = game.comboMaxTime / comboSpeedMultiplier;
+                const timeLeft = adjustedMaxTime - (Date.now() - game.comboTimer);
+                const fillWidth = Math.max(0, (timeLeft / adjustedMaxTime)) * (canvas.width - 20);
+                
+                const gradient = ctx.createLinearGradient(10, 0, canvas.width - 10, 0);
+                if (timeLeft < 300) {
+                    gradient.addColorStop(0, '#ff0000');
+                    gradient.addColorStop(1, '#ff6600');
+                } else {
+                    gradient.addColorStop(0, '#ff00ff');
+                    gradient.addColorStop(1, '#00ffff');
+                }
+                ctx.fillStyle = gradient;
+                ctx.fillRect(10, meterY, fillWidth, meterHeight);
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(10, meterY, canvas.width - 20, meterHeight);
+            }
+        }
+
+        function updateComboTimer() {
+            if (game.combo > 0) {
+                const comboSpeedMultiplier = 1 + (game.combo * 0.05);
+                const adjustedMaxTime = game.comboMaxTime / comboSpeedMultiplier;
+                
+                if (Date.now() - game.comboTimer > adjustedMaxTime) {
+                    game.combo = 0;
+                    game.fireMode = false;
+                    showVibeCheck('COMBO LOST! ⏰');
+                }
+            }
+        }
+
+        function gameLoop() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawBackground();
+
+            game.blocks.forEach((block) => {
+                if (block.dying) {
+                    block.updateDying();
+                } else {
+                    block.update();
+                }
+                block.draw();
+            });
+
+            if (game.blocks.length > 1) {
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                const nextBlock = game.blocks[1];
+                const tempBlock = new Block(nextBlock.direction);
+                tempBlock.y = 50;
+                tempBlock.size = 40;
+                tempBlock.draw();
+                ctx.restore();
+            }
+
+            drawParticles();
+            drawComboDisplay();
+            drawComboMeter();
+
+            game.blocks = game.blocks.filter(block => {
+                if (block.dying && Date.now() - block.dieTime > 500) {
+                    return false;
+                }
+                return true;
+            });
+
+            if (game.screenShake > 0) {
+                game.screenShake -= 1;
+            }
+
+            updateComboTimer();
+
+            if (!game.gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        init();
+        updateUI();
+        gameLoop();
+
+        let konamiCode = [];
+        const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight'];
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.key);
+            if (konamiCode.length > konamiSequence.length) {
+                konamiCode.shift();
+            }
+            if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+                game.money += 10000;
+                showVibeCheck('KONAMI CODE! 🎮');
+                playGachaSound('god');
+                updateUI();
+                konamiCode = [];
+            }
+        });
+    </script>
+</body>
+</html>
